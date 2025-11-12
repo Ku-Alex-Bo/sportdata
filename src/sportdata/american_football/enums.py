@@ -35,3 +35,13 @@ class DriveResult(str, Enum):
     TOUCHDOWN_TWO_POINT_CONVERSION = "touchdown-two-point-conversion"
     SAFETY = "safety"
     OTHER = "other"
+
+
+class PlayerPosition(str, Enum):
+    QUARTERBACK = "Quarterback"
+    TIGHT_END = "Tight End"
+    SAFETY = "Safety"
+    CORNERBACK = "Cornerback"
+    LINEBACKER = "Linebacker"
+    DEFENSIVE_END = "Defensive End"
+    OTHER = "Other"

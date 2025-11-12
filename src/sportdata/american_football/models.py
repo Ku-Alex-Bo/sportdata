@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, validator
-from sportdata.american_football.enums import PlayResult, Dict
-from typing import List
+from sportdata.american_football.enums import PlayResult
+from typing import List, Dict
 from datetime import datetime, time
 
 
@@ -56,11 +56,23 @@ class Team(BaseModel):
 class Player(BaseModel):
     id: str
     name: str
-    jersey: str
+    jersey: None | str = None
     position: str
-    team: None | Team
-    stats: None | PlayerStats
+    team: None | Team = None
+    stats: None | PlayerStats = None
 
+    @validator("jersey", pre=True):
+    def validate_jersey(cls, v):
+        if v is None:
+            return v
+        try:
+            n = int(v)
+            if 100 < n < 0:
+                raise ValueError("Jersey must be number > 0 and < 100") 
+        except:
+            raise ValueError("Jersey must be number > 0 and < 100")
+            
+        return str(n)
 
 class Participants(BaseModel):
     passer: None | str
@@ -71,6 +83,11 @@ class Participants(BaseModel):
 
 
 class Clock(BaseModel):
+    """
+    Class contains:
+    gameclock: time Game time
+    """
+
     gameclock: time | None = Field(None, description="Game time in format MM:SS")
     wallclock: datetime | None = Field(None, description="Real UTC timestamp")
     period: int | None = Field(None, description="Period number (1–5)")
