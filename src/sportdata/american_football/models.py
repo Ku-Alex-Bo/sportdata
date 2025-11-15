@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, validator
 from sportdata.american_football.enums import PlayResult
-from typing import List, Dict
+from typing import List, Dict, ClassVar
 from datetime import datetime, time
 
 
@@ -127,7 +127,9 @@ class Clock(BaseModel):
 
 
 class Play(BaseModel):
-    number: int
+    _counter: ClassVar[int] = 0
+
+    number: None | int = None 
     drive_number: int
     period: int
     clock: Clock
@@ -137,11 +139,20 @@ class Play(BaseModel):
     yards: int
     participants: Participants
 
+    @model_validator(mode="before")
+    def auto_increment(cls, values):
+        if values["number"] is None:
+            cls._counter += 1
+            values["number"] = _counter
+        return values
+
 
 class Game(BaseModel):
-    players: Dict[str, List[Player]]
-    stats: Stats
-    timeline: List[Play]
+    team_1: Team
+    team_2: Team
+    players: Dict[str, List[Player]] = {}
+    stats: None | Stats = None
+    timeline: List[Play] = []
 
     def add_play(self, play: Play) -> None:
-        self.pbp.append(play)
+        self.timeline.append(play)
