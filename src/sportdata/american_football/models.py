@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, field_validator, model_validator
 from sportdata.american_football.enums import PlayResult
+from pydantic import ValidationError
 from typing import List, Dict, ClassVar
 from datetime import datetime, time
 
@@ -36,6 +37,7 @@ class RushingStats(PlayerStats):
     attempts: int
     touchdowns: int
 
+
 class ReceivingStats(PlayerStats):
     """
     Receiver stats
@@ -61,18 +63,19 @@ class Player(BaseModel):
     team: None | Team = None
     stats: None | PlayerStats = None
 
-    @field_validator("jersey", pre=True)
+    @field_validator("jersey", mode="before")
     def validate_jersey(cls, v):
         if v is None:
             return v
         try:
             n = int(v)
-            if 100 < n < 0:
+            if n > 100 or n < 0:
                 raise ValueError("Jersey must be number > 0 and < 100") 
         except:
             raise ValueError("Jersey must be number > 0 and < 100")
             
         return str(n)
+
 
 class Participants(BaseModel):
     passer: None | str
@@ -88,7 +91,7 @@ class Clock(BaseModel):
     gameclock: time Game time
     """
 
-    gameclock: time | None = Field(None, description="Game time in format MM:SS")
+    gameclock: str | time | None = Field(None, description="Game time in format MM:SS")
     wallclock: datetime | None = Field(None, description="Real UTC timestamp")
     period: int | None = Field(None, description="Period number (1–5)")
 
@@ -123,6 +126,14 @@ class Clock(BaseModel):
         """Parses ISO 8601 timestamp '2025-11-09T14:37:06Z'."""
         if isinstance(v, str):
             return datetime.fromisoformat(v.replace("Z", "+00:00"))
+        return v
+    
+    @field_validator("period")
+    def validate_period(cls, v):
+        if v is None:
+            return v
+        if not (1 <= v <= 5):
+            raise ValueError("Period must be between 1 and 5")
         return v
 
 
