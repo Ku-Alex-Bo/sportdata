@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from sportdata.american_football.enums import PlayResult
 from typing import List, Dict, ClassVar
 from datetime import datetime, time
@@ -61,7 +61,7 @@ class Player(BaseModel):
     team: None | Team = None
     stats: None | PlayerStats = None
 
-    @validator("jersey", pre=True):
+    @field_validator("jersey", pre=True)
     def validate_jersey(cls, v):
         if v is None:
             return v
@@ -92,7 +92,7 @@ class Clock(BaseModel):
     wallclock: datetime | None = Field(None, description="Real UTC timestamp")
     period: int | None = Field(None, description="Period number (1–5)")
 
-    @validator("gameclock", pre=True)
+    @field_validator("gameclock", mode="before")
     def validate_gameclock(cls, v):
         """Parses 'MM:SS' or datetime.time to time instance with validation."""
         if v is None:
@@ -118,7 +118,7 @@ class Clock(BaseModel):
 
         return time(minute=minutes, second=seconds)
 
-    @validator("wallclock", pre=True)
+    @field_validator("wallclock", mode="before")
     def validate_wallclock(cls, v):
         """Parses ISO 8601 timestamp '2025-11-09T14:37:06Z'."""
         if isinstance(v, str):
@@ -143,7 +143,7 @@ class Play(BaseModel):
     def auto_increment(cls, values):
         if values["number"] is None:
             cls._counter += 1
-            values["number"] = _counter
+            values["number"] = cls._counter
         return values
 
 
